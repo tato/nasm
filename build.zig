@@ -92,15 +92,15 @@ pub fn build(b: *std.Build) void {
         .HAVE_CPU_TO_LE16 = null,
         .HAVE_CPU_TO_LE32 = null,
         .HAVE_CPU_TO_LE64 = null,
-        .HAVE_DECL_STRCASECMP = 0,
+        .HAVE_DECL_STRCASECMP = enabled(t.os.tag == .windows),
         .HAVE_DECL_STRICMP = 0,
         .HAVE_DECL_STRLCPY = 0,
-        .HAVE_DECL_STRNCASECMP = 0,
+        .HAVE_DECL_STRNCASECMP = enabled(t.os.tag == .windows),
         .HAVE_DECL_STRNICMP = 0,
         .HAVE_DECL_STRNLEN = 0,
         .HAVE_DECL_STRRCHRNUL = 0,
         .HAVE_DECL_STRSEP = 0,
-        .HAVE_ENDIAN_H = 1,
+        .HAVE_ENDIAN_H = have(t.os.tag == .linux),
         .HAVE_FACCESSAT = 1,
         .HAVE_FCNTL_H = 1,
         .HAVE_FILENO = 1,
@@ -142,13 +142,13 @@ pub fn build(b: *std.Build) void {
         .HAVE_IO_H = null,
         .HAVE_ISASCII = 1,
         .HAVE_ISCNTRL = 1,
-        .HAVE_MACHINE_ENDIAN_H = 1,
-        .HAVE_MEMPCPY = 1,
+        .HAVE_MACHINE_ENDIAN_H = have(t.os.tag == .macos),
+        .HAVE_MEMPCPY = have(t.os.tag == .linux or t.os.tag == .windows),
         .HAVE_MEMPSET = null,
         .HAVE_MINIX_CONFIG_H = null,
-        .HAVE_MMAP = 1,
+        .HAVE_MMAP = have(t.os.tag != .windows),
         .HAVE_PATHCONF = null,
-        .HAVE_REALPATH = 1,
+        .HAVE_REALPATH = have(t.os.tag != .windows),
         .HAVE_SNPRINTF = 1,
         .HAVE_STAT = 1,
         .HAVE_STDARG_H = 1,
@@ -162,7 +162,7 @@ pub fn build(b: *std.Build) void {
         .HAVE_STRICMP = 1,
         .HAVE_STRINGS_H = 1,
         .HAVE_STRING_H = 1,
-        .HAVE_STRLCPY = null,
+        .HAVE_STRLCPY = have(t.os.tag == .linux),
         .HAVE_STRNCASECMP = 1,
         .HAVE_STRNICMP = 1,
         .HAVE_STRNLEN = 1,
@@ -171,8 +171,8 @@ pub fn build(b: *std.Build) void {
         .HAVE_STRUCT_STAT = null,
         .HAVE_STRUCT__STATI64 = null,
         .HAVE_SYSCONF = null,
-        .HAVE_SYS_ENDIAN_H = 1,
-        .HAVE_SYS_MMAN_H = 1,
+        .HAVE_SYS_ENDIAN_H = have(t.os.tag == .linux),
+        .HAVE_SYS_MMAN_H = have(t.os.tag != .windows),
         .HAVE_SYS_PARAM_H = null,
         .HAVE_SYS_RESOURCE_H = null,
         .HAVE_SYS_STAT_H = 1,
@@ -181,7 +181,7 @@ pub fn build(b: *std.Build) void {
         .HAVE_TYPEOF = null,
         .HAVE_UINTPTR_T = 1,
         .HAVE_UNISTD_H = null,
-        .HAVE_VSNPRINTF = null,
+        .HAVE_VSNPRINTF = have(t.os.tag == .windows),
         .HAVE_WCHAR_H = null,
         .HAVE__ACCESS = null,
         .HAVE__BITSCANREVERSE = null,
@@ -345,6 +345,7 @@ pub fn build(b: *std.Build) void {
         "-DHAVE_CONFIG_H",
         "-std=c17",
         "-Wno-implicit-function-declaration",
+        "-Wno-int-conversion",
     };
     if (old_c_source_files_api) {
         exe.addCSourceFiles(&files, &flags);
@@ -360,4 +361,7 @@ pub fn build(b: *std.Build) void {
 
 fn have(c: bool) ?c_int {
     return if (c) 1 else null;
+}
+fn enabled(c: bool) ?c_int {
+    return if (c) 1 else 0;
 }
